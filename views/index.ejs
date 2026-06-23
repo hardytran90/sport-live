@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./styles.css">
+    <title>Livescore</title>
+
+</head>
+
+<body>
+    <div class="container">
+        <h1>Livescores</h1>
+        <form action="/sports" method="POST">
+            <select name="sport">
+                <% sports.forEach(item=> { %>
+                    <option value="<%= item.key %>">
+                        <%= item.title %> - <%= item.description %>
+                    </option>
+                    <% }) %>
+            </select>
+            <button type="submit">Get Scores</button>
+        </form>
+
+        <% if (locals.games) { %>
+            <% if (games.length===0) { %>
+                <p>No games found!</p>
+                <% } else { %>
+                    <% games.forEach(game=> { %>
+                        <div class="game-card">
+                            <p class="teams">
+                                <%= game.away_team %> vs <%= game.home_team %>
+                            </p>
+                            <% if (game.scores) { %>
+                                <p class="score">
+                                    <%= game.scores.find(s=> s.name === game.away_team)?.score %>
+                                        -
+                                        <%= game.scores.find(s=> s.name === game.home_team)?.score %>
+                                </p>
+                                <% } %>
+                                    <p class="status <%= game.completed ? 'final' : 'live' %>">
+                                        <%= game.completed ? "Final" : "Live" %>
+                                    </p>
+                        </div>
+                        <% }) %>
+                            <% } %>
+                                <% } %>
+</body>
+
+</html>

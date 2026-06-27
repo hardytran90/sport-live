@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./styles.css">
+    <title>🔴 Live Matches</title>
+</head>
+
+<body>
+    <nav class="nav">
+        <a href="/" class="<%= locals.page === 'home' ? 'active' : '' %>">🗓️ Today</a>
+        <a href="/live" class="<%= locals.page === 'live' ? 'active' : '' %>">🔴 Live</a>
+        <a href="/standings" class="<%= locals.page === 'standings' ? 'active' : '' %>">📈 Standings</a>
+    </nav>
+    <div class="container">
+        <a href="/" class="back-btn">◁ Back</a>
+        <h1>🔴 Live Now</h1>
+        <% if (groupedFixtures.length===0) { %>
+            <p class="no-data">No matches live at the moment.</p>
+            <% } else { %>
+                <% groupedFixtures.forEach(group=> { %>
+                    <div class="league-section">
+                        <div class="league-title">
+                            <img src="<%= group.league.flag %>" alt="<%= group.league.country %>">
+                            <img src="<%= group.league.logo %>" alt="<%= group.league.name %>">
+                            <span>
+                                <%= group.league.country %> — <%= group.league.name %>
+                            </span>
+                        </div>
+                        <% group.games.forEach(fix=> { %>
+                            <div class="game-card" data-id="<%= fix.fixture.id %>">
+                                <div class="team">
+                                    <img src="<%= fix.teams.home.logo %>" alt="<%= fix.teams.home.name %>">
+                                    <span>
+                                        <%= fix.teams.home.name %>
+                                    </span>
+                                </div>
+
+                                <div class="score">
+                                    <span>
+                                        <%= fix.goals.home %> - <%= fix.goals.away %>
+                                    </span>
+                                    <p class="status live">
+                                        <%= fix.fixture.status.elapsed %>'
+                                            <%= fix.fixture.status.short==="HT" ? "Half Time" : "" %>
+                                    </p>
+                                </div>
+
+                                <div class="team">
+                                    <img src="<%= fix.teams.away.logo %>" alt="<%= fix.teams.away.name %>">
+                                    <span>
+                                        <%= fix.teams.away.name %>
+                                    </span>
+                                </div>
+                                <div class="events-panel" id="events-<%= fix.fixture.id %>" style="display:none;">
+                                    <p class="loading">Loading...</p>
+                                </div>
+                            </div>
+                            <% }) %>
+                    </div>
+                    <% }) %>
+                        <% } %>
+
+                            <script>
+                                document.querySelectorAll(".game-card").forEach(card => {
+                                    card.addEventListener("click", async () => {
+                                        const id = card.dataset.id;
+                                        const panel = document.getElementById(`events-${id}`);
+                                        if (panel.style.display === "block") {
+                                            panel.style.display = "none";
+                                            return;
+                                        }
+                                        panel.style.display = "block";
+                                        panel.innerHTML = "<p class='loading'>Loading...</p>";
+                                        const res = await fetch(`/events/${id}`);
+                                        const events = await res.json();
+                                        if (events.length === 0) {
+                                            panel.innerHTML = "<p class='no-events'>No events yet.</p>";
+                                            return;
+                                        }
+                                        panel.innerHTML = events.map(e => {
+                                            const icon = e.type === "Goal" ? "⚽"
+                                                : e.detail === "Yellow Card" ? "🟨"
+                                                    : e.detail === "Red Card" ? "🟥" : "↔️";
+                                            return `<div class="event-item">
+                <span class="event-time">${e.time.elapsed}'</span>
+                <span class="event-icon">${icon}</span>
+                <span class="event-player">${e.player.name}</span>
+                ${e.type === "Goal" && e.assist?.name ? `<span class="event-assist">(assist: ${e.assist.name})</span>` : ""}
+                ${e.detail === "Penalty" ? "<span class='penalty'>(P)</span>" : ""}
+            </div>`;
+                                        }).join("");
+                                    });
+                                });
+                            </script>
+</body>
+
+</html>

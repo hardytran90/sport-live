@@ -5,47 +5,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./styles.css">
-    <title>Livescore</title>
+    <title>Sports Live</title>
 
 </head>
 
 <body>
+    <nav class="nav">
+        <a href="/" class="<%= locals.page === 'home' ? 'active' : '' %>">🗓️ Today</a>
+        <a href="/live" class="<%= locals.page === 'live' ? 'active' : '' %>">🔴 Live</a>
+        <a href="/standings" class="<%= locals.page === 'standings' ? 'active' : '' %>">📈 Standings</a>
+    </nav>
     <div class="container">
-        <h1>Livescores</h1>
-        <form action="/sports" method="POST">
-            <select name="sport">
-                <% sports.forEach(item=> { %>
-                    <option value="<%= item.key %>">
-                        <%= item.title %> - <%= item.description %>
-                    </option>
-                    <% }) %>
-            </select>
-            <button type="submit">Get Scores</button>
-        </form>
+        <h1>Sports Live</h1>
+        <p class="date">Today: <%= new Date().toDateString() %>
+        </p>
 
-        <% if (locals.games) { %>
-            <% if (games.length===0) { %>
-                <p>No games found!</p>
-                <% } else { %>
-                    <% games.forEach(game=> { %>
-                        <div class="game-card">
-                            <p class="teams">
-                                <%= game.away_team %> vs <%= game.home_team %>
-                            </p>
-                            <% if (game.scores) { %>
-                                <p class="score">
-                                    <%= game.scores.find(s=> s.name === game.away_team)?.score %>
-                                        -
-                                        <%= game.scores.find(s=> s.name === game.home_team)?.score %>
-                                </p>
-                                <% } %>
-                                    <p class="status <%= game.completed ? 'final' : 'live' %>">
-                                        <%= game.completed ? "Final" : "Live" %>
-                                    </p>
+        <% if (fixtures.length===0) { %>
+            <p>No matches today.</p>
+            <% } else { %>
+                <% fixtures.forEach(fix=> { %>
+                    <div class="game-card">
+                        <!-- Teams & Score -->
+                        <div class="team">
+                            <img src="<%= fix.teams.home.logo %>" alt="<%= fix.teams.home.name %>">
+                            <span>
+                                <%= fix.teams.home.name %>
+                            </span>
                         </div>
-                        <% }) %>
-                            <% } %>
-                                <% } %>
+
+                        <div class="score">
+                            <% if (fix.fixture.status.short==="NS" ) { %>
+                                <!-- Not started - Match time -->
+                                <span>
+                                    <%= new Date(fix.fixture.date).toLocaleTimeString("en-AU", {
+                                        timeZone: "Australia/Adelaide" , hour: "2-digit" , minute: "2-digit" }) %>
+                                </span>
+                                <!-- On live or ended - Show score -->
+                                <% } else { %>
+                                    <span>
+                                        <%= fix.goals.home %> - <%= fix.goals.away %>
+                                    </span>
+                                    <% } %>
+                                        <p
+                                            class="status <%= fix.fixture.status.short === 'FT' ? 'final' : fix.fixture.status.short === 'NS' ? 'upcoming' : 'live' %>">
+                                            <%= fix.fixture.status.long %>
+                                        </p>
+                        </div>
+                        <div class="team">
+                            <img src="<%= fix.teams.away.logo %>" alt="<%= fix.teams.away.name %>">
+                            <span>
+                                <%= fix.teams.away.name %>
+                            </span>
+                        </div>
+                    </div>
+                    <% }) %>
+                        <% } %>
+    </div>
 </body>
 
 </html>
